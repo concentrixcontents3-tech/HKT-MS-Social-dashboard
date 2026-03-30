@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Hankook Motorsports — Social Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#fff;--bg2:#f7f7f7;--bg3:#efefef;--text:#111;--text2:#666;--text3:#aaa;--border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.15);--pos:#16a34a;--neg:#dc2626;--ig:#E1306C;--x:#111;--collab:#8b5cf6;--accent:#1a56db;}
+body{font-family:'Inter',sans-serif;background:var(--bg2);color:var(--text);min-height:100vh;}
+.global-nav{background:#111;position:sticky;top:0;z-index:200;}
+.gnav-top{display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid rgba(255,255,255,0.08);}
+.gnav-logo{font-size:13px;font-weight:500;color:#fff;padding:14px 0;letter-spacing:-.2px;}
+.gnav-logo span{color:rgba(255,255,255,0.35);font-weight:400;}
+.gnav-cats{display:flex;}
+.gcat{padding:14px 22px;font-size:12px;font-weight:500;color:rgba(255,255,255,0.45);cursor:pointer;border:none;background:transparent;font-family:'Inter',sans-serif;border-bottom:2px solid transparent;transition:.15s;white-space:nowrap;}
+.gcat.on{color:#fff;border-bottom-color:var(--ig);}
+.gcat:hover:not(.on){color:rgba(255,255,255,0.75);}
+.gnav-sub{display:flex;padding:0 24px;background:#1a1a1a;overflow-x:auto;}
+.gsub{padding:10px 18px;font-size:11px;color:rgba(255,255,255,0.4);cursor:pointer;border:none;background:transparent;font-family:'Inter',sans-serif;border-bottom:2px solid transparent;transition:.15s;white-space:nowrap;}
+.gsub.on{color:rgba(255,255,255,0.9);border-bottom-color:rgba(255,255,255,0.5);}
+.section{display:none;}.section.on{display:block;}
+.page-wrap{max-width:1100px;margin:0 auto;padding:28px 20px 60px;}
+.plat-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.plat-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px 16px 12px;}
+.plat-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.plat-left{display:flex;align-items:center;gap:10px;}
+.plat-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.plat-name{font-size:13px;font-weight:500;}.plat-handle{font-size:11px;color:var(--text2);margin-top:1px;}
+.plat-badge{font-size:10px;padding:3px 9px;border-radius:20px;font-weight:500;}
+.badge-ig{background:#E1306C18;color:#E1306C;}.badge-x{background:var(--bg3);color:var(--text2);}
+.follower-row{display:flex;align-items:center;gap:12px;padding-top:10px;border-top:1px solid var(--border);}
+.follower-label{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;}
+.follower-input{font-family:'DM Mono',monospace;font-size:18px;font-weight:500;border:none;background:transparent;outline:none;width:120px;cursor:text;color:var(--text);}
+.follower-input::placeholder{color:var(--text3);}.follower-input:focus{color:var(--ig);}
+.follower-saved{font-size:10px;color:var(--pos);opacity:0;transition:.3s;margin-left:4px;}
+.sec-label{font-size:10px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin:20px 0 8px;display:flex;align-items:center;gap:6px;}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}.dot-ig{background:var(--ig);}.dot-x{background:var(--x);}
+.kpi-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.kpi-block{border:1px solid var(--border);border-radius:11px;overflow:hidden;}
+.kpi-block-head{padding:9px 14px;font-size:10px;font-weight:500;letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;color:var(--text2);}
+.kpi-grid{display:grid;gap:1px;background:var(--border);}
+.kpi{background:var(--bg);padding:13px 12px 11px;}
+.kpi-label{font-size:9px;color:var(--text2);letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px;}
+.kpi-val{font-family:'DM Mono',monospace;font-size:18px;font-weight:500;color:var(--text);line-height:1;}
+.kpi-delta{font-size:10px;margin-top:3px;}.pos{color:var(--pos);}.neg{color:var(--neg);}.neu{color:var(--text2);}
+.charts-equal{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.panel{background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:16px;}
+.panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.panel-title{font-size:12px;font-weight:500;}.panel-sub{font-size:10px;color:var(--text2);}
+.legend{display:flex;gap:12px;margin-top:10px;flex-wrap:wrap;}
+.leg{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text2);}
+.leg-sq{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+.top5-controls{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.ctrl-group{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.ctrl-btn{padding:6px 14px;font-size:11px;font-family:'Inter',sans-serif;background:transparent;border:none;color:var(--text2);cursor:pointer;transition:.15s;}
+.ctrl-btn.on{background:var(--bg3);color:var(--text);font-weight:500;}
+.collab-toggle{display:flex;align-items:center;gap:6px;padding:6px 14px;border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--text2);cursor:pointer;user-select:none;transition:.15s;background:transparent;font-family:'Inter',sans-serif;}
+.collab-toggle.active{border-color:var(--collab);color:var(--collab);background:#8b5cf610;}
+.week-selector{border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:11px;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);outline:none;}
+.top5-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.top5-card{background:var(--bg);border:1px solid var(--border);border-radius:11px;overflow:hidden;}
+.top5-head{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;}
+.top5-head-title{font-size:11px;font-weight:500;}
+.top5-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:.5px solid var(--border);transition:.15s;}
+.top5-item:last-child{border-bottom:none;}.top5-item:hover{background:var(--bg2);}
+.top5-rank{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;width:18px;color:var(--text3);flex-shrink:0;}
+.top5-rank.r1{color:var(--ig);}.top5-info{flex:1;min-width:0;}
+.top5-title{font-size:11px;color:var(--text);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.top5-meta{font-size:10px;color:var(--text2);margin-top:2px;display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
+.top5-val{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:var(--text);flex-shrink:0;}
+.badge{display:inline-block;font-size:8px;padding:1px 5px;border-radius:3px;font-family:'Inter',sans-serif;font-weight:500;line-height:1.6;white-space:nowrap;}
+.b-paid{background:#fef3c7;color:#d97706;}.b-organic{background:#dcfce7;color:#16a34a;}
+.b-collab{background:#ede9fe;color:#7c3aed;}.b-fe{background:#f3e8ff;color:#7c3aed;}.b-wrc{background:#dbeafe;color:#1d4ed8;}
+.sum-block{border:1px solid var(--border);border-radius:11px;overflow:hidden;margin-bottom:10px;}
+.sum-head-bar{padding:9px 14px;font-size:10px;font-weight:500;letter-spacing:.5px;text-transform:uppercase;color:var(--text2);border-bottom:1px solid var(--border);background:var(--bg);}
+.sum-tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.sum-tbl th{padding:9px 14px;font-size:10px;font-weight:500;color:var(--text2);letter-spacing:.4px;text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--bg2);}
+.sum-tbl th:not(:first-child){text-align:right;}
+.sum-tbl td{padding:10px 14px;border-bottom:.5px solid var(--border);font-family:'DM Mono',monospace;font-size:12px;color:var(--text);}
+.sum-tbl td:first-child{font-family:'Inter',sans-serif;font-size:12px;font-weight:500;}
+.sum-tbl td:not(:first-child){text-align:right;}.sum-tbl tr.total td{background:var(--bg2);font-weight:600;border-top:1px solid var(--border2);}
+.compare-card{border:1px solid var(--border);border-radius:11px;overflow:hidden;margin-bottom:10px;}
+.compare-head{padding:9px 14px;font-size:10px;font-weight:500;letter-spacing:.5px;text-transform:uppercase;color:var(--text2);border-bottom:1px solid var(--border);}
+.cs-row{display:flex;align-items:center;padding:9px 14px;gap:10px;border-bottom:.5px solid var(--border);}
+.cs-row:last-child{border-bottom:none;}.cs-label{font-size:11px;color:var(--text2);width:130px;flex-shrink:0;}
+.cs-bars{flex:1;display:flex;flex-direction:column;gap:4px;}
+.cs-bar-row{display:flex;align-items:center;gap:7px;}
+.cs-plat{font-size:9px;width:20px;flex-shrink:0;font-weight:600;}
+.cs-track{flex:1;height:4px;background:var(--bg3);border-radius:3px;overflow:hidden;}
+.cs-fill{height:100%;border-radius:3px;}.fill-ig{background:var(--ig);}.fill-x{background:var(--x);}
+.cs-val{font-family:'DM Mono',monospace;font-size:10px;color:var(--text);width:100px;text-align:right;flex-shrink:0;}
+.report-header{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:22px 26px;margin-bottom:18px;display:flex;align-items:flex-start;justify-content:space-between;}
+.report-meta{font-size:10px;color:var(--text2);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px;}
+.report-title{font-size:20px;font-weight:600;color:var(--text);margin-bottom:10px;}
+.report-info{font-size:12px;color:var(--text2);line-height:2;}.report-info strong{font-weight:500;color:var(--text);}
+.hk-logo{font-size:13px;font-weight:600;color:var(--text);letter-spacing:-.3px;text-align:right;}
+.hk-logo small{display:block;font-size:10px;color:var(--text3);font-weight:400;margin-top:2px;}
+.r-kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:11px;overflow:hidden;margin-bottom:18px;}
+.r-kpi-box{background:#111;text-align:center;}
+.r-kpi-label{padding:10px 8px 7px;font-size:10px;font-weight:500;color:rgba(255,255,255,0.6);letter-spacing:.3px;}
+.r-kpi-val{padding:10px 8px 16px;font-family:'DM Mono',monospace;font-size:26px;font-weight:500;color:var(--accent);line-height:1;}
+.r-tbl-wrap{background:var(--bg);border:1px solid var(--border);border-radius:11px;overflow:hidden;margin-bottom:18px;}
+.r-tbl-head{padding:11px 14px;background:#111;display:flex;align-items:center;gap:8px;}
+.r-tbl-head-title{font-size:10px;font-weight:500;color:#fff;letter-spacing:.4px;text-transform:uppercase;}
+.r-tbl{width:100%;border-collapse:collapse;font-size:11px;}
+.r-tbl thead tr{background:var(--bg2);border-bottom:1px solid var(--border);}
+.r-tbl th{padding:8px 12px;font-size:9px;font-weight:500;color:var(--text2);letter-spacing:.4px;text-transform:uppercase;}
+.r-tbl th:not(:first-child){text-align:right;}
+.r-tbl td{padding:9px 12px;border-bottom:.5px solid var(--border);font-family:'DM Mono',monospace;font-size:11px;color:var(--text);vertical-align:middle;}
+.r-tbl td:first-child{font-family:'Inter',sans-serif;}.r-tbl td:not(:first-child){text-align:right;}
+.r-tbl tbody tr:last-child td{border-bottom:none;}.r-tbl tbody tr:hover td{background:var(--bg2);}
+.r-tbl .ig-row td{background:#fffbfe;}.r-tbl .x-row td{background:#f9f9f9;}
+.r-tbl .ig-row:hover td{background:#fdf0f7;}.r-tbl .x-row:hover td{background:#f3f3f3;}
+.r-tbl .group-first td{border-top:1px solid var(--border);}.r-tbl .group-first:first-child td{border-top:none;}
+.r-tbl .collab-row td{background:linear-gradient(90deg,#8b5cf610,transparent)!important;}
+.ch{display:inline-block;font-size:9px;font-weight:600;padding:2px 7px;border-radius:3px;font-family:'Inter',sans-serif;}
+.ch-ig{background:#fce4ed;color:#c2185b;}.ch-x{background:#e8e8e8;color:#333;}
+.typ{font-size:9px;color:var(--text3);font-family:'Inter',sans-serif;}
+.content-cell{display:flex;flex-direction:column;gap:2px;}
+.content-cell .ctitle{font-size:11px;color:var(--text);max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.content-cell .csub{font-size:9px;color:var(--text3);}
+.link-a{font-size:9px;color:var(--accent);text-decoration:none;}.link-a:hover{text-decoration:underline;}
+.dash-c{color:var(--text3);}.no-data{padding:24px;text-align:center;font-size:12px;color:var(--text3);}
+@media(max-width:680px){.plat-row,.kpi-2col,.charts-equal,.top5-grid{grid-template-columns:1fr;}.r-kpi-strip{grid-template-columns:repeat(3,1fr);}}
+</style>
+</head>
+<body>
+
+<div class="global-nav">
+  <div class="gnav-top">
+    <div class="gnav-logo">Hankook Motorsports <span>/ Social Dashboard · 26년 2월 기준</span></div>
+    <div class="gnav-cats">
+      <button class="gcat on" onclick="switchCat('dashboard',this)">월별 대시보드</button>
+      <button class="gcat" onclick="switchCat('report',this)">경기 리포트</button>
+    </div>
+  </div>
+  <div class="gnav-sub" id="sub-dashboard">
+    <button class="gsub on" onclick="switchSub('jan',this)">26년 1월</button>
+    <button class="gsub" onclick="switchSub('feb',this)">26년 2월</button>
+    <button class="gsub" onclick="switchSub('yoy',this)">전년 비교</button>
+  </div>
+  <div class="gnav-sub" id="sub-report" style="display:none;">
+    <button class="gsub on" onclick="switchSub('fe-r2',this)">🇲🇽 FE R2 Mexico</button>
+    <button class="gsub" onclick="switchSub('fe-r3',this)">🇺🇸 FE R3 Miami</button>
+    <button class="gsub" onclick="switchSub('fe-r45',this)">🇸🇦 FE R4&5 Saudi</button>
+    <button class="gsub" onclick="switchSub('wrc-r1',this)">🇲🇨 WRC R1 Monaco</button>
+    <button class="gsub" onclick="switchSub('wrc-r2',this)">🇸🇪 WRC R2 Sweden</button>
+  </div>
+</div>
+
+<!-- ══ 1월 ══ -->
+<div class="section on" id="sec-jan"><div class="page-wrap">
+  <div class="plat-row">
+    <div class="plat-card">
+      <div class="plat-top"><div class="plat-left"><div class="plat-icon" style="background:#E1306C;">📸</div><div><div class="plat-name">Instagram Motorsports</div><div class="plat-handle">@hankooktire_motorsports</div></div></div><span class="plat-badge badge-ig">IG</span></div>
+      <div class="follower-row"><span class="follower-label">팔로워</span><input class="follower-input" id="ig-fw" type="text" placeholder="숫자 입력" oninput="saveFw('ig')"/><span class="follower-saved" id="ig-fw-saved">저장됨 ✓</span></div>
+    </div>
+    <div class="plat-card">
+      <div class="plat-top"><div class="plat-left"><div class="plat-icon" style="background:#111;color:#fff;font-size:13px;font-weight:700;">𝕏</div><div><div class="plat-name">X Motorsports</div><div class="plat-handle">@Hankook_Sport</div></div></div><span class="plat-badge badge-x">X</span></div>
+      <div class="follower-row"><span class="follower-label">팔로워</span><input class="follower-input" id="x-fw" type="text" placeholder="숫자 입력" oninput="saveFw('x')"/><span class="follower-saved" id="x-fw-saved">저장됨 ✓</span></div>
+    </div>
+  </div>
+
+  <div class="sec-label">26년 1월 — KPI 요약</div>
+  <div class="kpi-2col">
+    <div class="kpi-block">
+      <div class="kpi-block-head"><span class="dot dot-ig"></span>Instagram · 1월 (19건)</div>
+      <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);">
+        <div class="kpi"><div class="kpi-label">Impression</div><div class="kpi-val">11.1M</div><div class="kpi-delta neu">광고 포함</div></div>
+        <div class="kpi"><div class="kpi-label">Reach</div><div class="kpi-val">10.3M</div><div class="kpi-delta neu">—</div></div>
+        <div class="kpi"><div class="kpi-label">Interaction</div><div class="kpi-val">150.5K</div><div class="kpi-delta neg">↓69.0% YoY</div></div>
+        <div class="kpi"><div class="kpi-label">Video Views</div><div class="kpi-val">7.7M</div><div class="kpi-delta neu">—</div></div>
+        <div class="kpi"><div class="kpi-label">광고비</div><div class="kpi-val">11.0M₩</div><div class="kpi-delta neu">—</div></div>
+      </div>
+    </div>
+    <div class="kpi-block">
+      <div class="kpi-block-head"><span class="dot dot-x"></span>X · 1월 (19건)</div>
+      <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);">
+        <div class="kpi"><div class="kpi-label">Impression</div><div class="kpi-val">9.6K</div><div class="kpi-delta neg">↓71.5% YoY</div></div>
+        <div class="kpi"><div class="kpi-label">Interaction</div><div class="kpi-val">907</div><div class="kpi-delta neg">↓28.7% YoY</div></div>
+        <div class="kpi"><div class="kpi-label">Like</div><div class="kpi-val">218</div><div class="kpi-delta neu">—</div></div>
+        <div class="kpi"><div class="kpi-label">Repost</div><div class="kpi-val">36</div><div class="kpi-delta neu">—</div></div>
+        <div class="kpi"><div class="kpi-label">건수</div><div class="kpi-val">19</div><div class="kpi-delta neu">—</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-label">26년 1월 — Pillar 구성</div>
+  <div class="charts-equal">
+    <div class="panel"><div class="panel-head"><span class="panel-title">IG Pillar 구성</span><span class="panel-sub">1월 · 19건</span></div>
+      <div style="position:relative;height:170px;"><canvas id="c-ig1-pillar"></canvas></div>
+      <div class="legend"><span class="leg"><span class="leg-sq" style="background:#E1306C;"></span>Formula E 13건</span><span class="leg"><span class="leg-sq" style="background:#888;"></span>WRC 6건</span></div>
+    </div>
+    <div class="panel"><div class="panel-head"><span class="panel-title">X Pillar 구성</span><span class="panel-sub">1월 · 19건</span></div>
+      <div style="position:relative;height:170px;"><canvas id="c-x1-pillar"></canvas></div>
+      <div class="legend"><span class="leg"><span class="leg-sq" style="background:#111;"></span>Formula E 13건</span><span class="leg"><span class="leg-sq" style="background:#888;"></span>WRC 6건</span></div>
+    </div>
+  </div>
+  <div class="charts-equal">
+    <div class="panel"><div class="panel-head"><span class="panel-title">IG Side Pillar</span><span class="panel-sub">콘텐츠 유형별</span></div>
+      <div style="position:relative;height:196px;"><canvas id="c-ig1-sp"></canvas></div>
+    </div>
+    <div class="panel"><div class="panel-head"><span class="panel-title">X Side Pillar</span><span class="panel-sub">콘텐츠 유형별</span></div>
+      <div style="position:relative;height:196px;"><canvas id="c-x1-sp"></canvas></div>
+    </div>
+  </div>
+
+  <div class="sec-label"><span class="dot dot-ig"></span>Top 5 콘텐츠 · Engagement(View) 기준</div>
+  <div class="top5-controls">
+    <div class="ctrl-group">
+      <button class="ctrl-btn on" onclick="setP('month',this,'jan')">월별</button>
+      <button class="ctrl-btn" onclick="setP('week',this,'jan')">주차별</button>
+    </div>
+    <select class="week-selector" id="wk-jan" style="display:none;" onchange="renderTop5('jan')">
+      <option value="all">전체</option><option value="2">2주차</option><option value="3">3주차</option><option value="4">4주차</option><option value="5">5주차</option>
+    </select>
+    <button class="collab-toggle" id="cb-jan" onclick="toggleCollab('jan')">공동작업자 제외</button>
+  </div>
+  <div class="top5-grid">
+    <div class="top5-card"><div class="top5-head"><span class="dot dot-ig"></span><span class="top5-head-title">Instagram Top 5</span></div><div id="t5-ig-jan"></div></div>
+    <div class="top5-card"><div class="top5-head"><span class="dot dot-x"></span><span class="top5-head-title">X Top 5</span></div><div id="t5-x-jan"></div></div>
+  </div>
+
+  <div class="sec-label">26년 1월 — 월간 Summary</div>
+  <div class="sum-block"><div class="sum-head-bar">Postings · Impression · Reach · Views · Engagement · 1월</div>
+    <table class="sum-tbl"><thead><tr><th>Channel</th><th>Postings</th><th>Impression</th><th>Reach</th><th>Views</th><th>Engagement</th></tr></thead>
+    <tbody>
+      <tr><td>Instagram (IG)</td><td>19</td><td>11,066,194</td><td>10,290,799</td><td>7,659,329</td><td>150,536</td></tr>
+      <tr><td>X</td><td>19</td><td>9,599</td><td>—</td><td>—</td><td>907</td></tr>
+      <tr class="total"><td>합계</td><td>38</td><td>—</td><td>10,290,799</td><td>7,659,329</td><td>151,443</td></tr>
+    </tbody></table>
+  </div>
+</div></div>
+
+<!-- ══ 2월 ══ -->
+<div class="section" id="sec-feb"><div class="page-wrap">
+  <div class="plat-row">
+    <div class="plat-card">
+      <div class="plat-top"><div class="plat-left"><div class="plat-icon" style="background:#E1306C;">📸</div><div><div class="plat-name">Instagram Motorsports</div><div class="plat-handle">@hankooktire_motorsports</div></div></div><span class="plat-badge badge-ig">IG</span></div>
+      <div class="follower-row"><span class="follower-label">팔로워</span><input class="follower-input" id="ig-fw-feb" type="text" placeholder="숫자 입력" oninput="saveFw('ig')"/><span class="follower-saved" id="ig-fw-feb-saved">저장됨 ✓</span></div>
+    </div>
+    <div class="plat-card">
+      <div class="plat-top"><div class="plat-left"><div class="plat-icon" style="background:#111;color:#fff;font-size:13px;font-weight:700;">𝕏</div><div><div class="plat-name">X Motorsports</div><div class="plat-handle">@Hankook_Sport</div></div></div><span class="plat-badge badge-x">X</span></div>
+      <div class="follower-row"><span class="follower-label">팔로워</span><input class="follower-input" id="x-fw-feb" type="text" placeholder="숫자 입력" oninput="saveFw('x')"/><span class="follower-saved" id="x-fw-feb-saved">저장됨 ✓</span></div>
+    </div>
+  </div>
+
+  <div class="sec-label">26년 2월 — KPI 요약</div>
+  <div class="kpi-2col">
+    <div class="kpi-block">
+      <div class="kpi-block-head"><span class="dot dot-ig"></span>Instagram · 2월 (19건)</div>
+      <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);">
+        <div class="kpi"><div class="kpi-label">Reach</div><div class="kpi-val">401.1K</div><div class="kpi-delta neg">↓96.1% 전월</div></div>
+        <div class="kpi"><div class="kpi-label">Interaction</div><div class="kpi-val">27.8K</div><div class="kpi-delta neg">↓81.5% 전월</div></div>
+        <div class="kpi"><div class="kpi-label">Like</div><div class="kpi-val">26.9K</div><div class="kpi-delta neu">—</div></div>
+        <div class="kpi"><div class="kpi-label">Video Views</div><div class="kpi-val">67.1K</div><div class="kpi-delta neu">—</div></div>
+        <div class="kpi"><div class="kpi-label">광고비</div><div class="kpi-val">0₩</div><div class="kpi-delta neu">—</div></div>
+      </div>
+    </div>
+    <div class="kpi-block">
+      <div class="kpi-block-head"><span class="dot dot-x"></span>X · 2월 (16건)</div>
+      <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);">
+        <div class="kpi"><div class="kpi-label">Impression</div><div class="kpi-val">9.7K</div><div class="kpi-delta pos">↑0.8% 전월</div></div>
+        <div class="kpi"><div class="kpi-label">Interaction</div><div class="kpi-val">1.2K</div><div class="kpi-delta pos">↑31.5% 전월</div></div>
+        <div class="kpi"><div class="kpi-label">Like</div><div class="kpi-val">360</div><div class="kpi-delta neu">—</div></div>
+        <div class="kpi"><div class="kpi-label">Repost</div><div class="kpi-val">45</div><div class="kpi-delta neu">—</div></div>
+        <div class="kpi"><div class="kpi-label">건수</div><div class="kpi-val">16</div><div class="kpi-delta neu">—</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-label">26년 2월 — Pillar 구성</div>
+  <div class="charts-equal">
+    <div class="panel"><div class="panel-head"><span class="panel-title">IG Pillar 구성</span><span class="panel-sub">2월 · 19건</span></div>
+      <div style="position:relative;height:170px;"><canvas id="c-ig2-pillar"></canvas></div>
+      <div class="legend"><span class="leg"><span class="leg-sq" style="background:#E1306C;"></span>Formula E 11건</span><span class="leg"><span class="leg-sq" style="background:#888;"></span>WRC 8건</span></div>
+    </div>
+    <div class="panel"><div class="panel-head"><span class="panel-title">X Pillar 구성</span><span class="panel-sub">2월 · 16건</span></div>
+      <div style="position:relative;height:170px;"><canvas id="c-x2-pillar"></canvas></div>
+      <div class="legend"><span class="leg"><span class="leg-sq" style="background:#111;"></span>Formula E 10건</span><span class="leg"><span class="leg-sq" style="background:#888;"></span>WRC 6건</span></div>
+    </div>
+  </div>
+  <div class="charts-equal">
+    <div class="panel"><div class="panel-head"><span class="panel-title">IG Side Pillar</span><span class="panel-sub">콘텐츠 유형별</span></div>
+      <div style="position:relative;height:252px;"><canvas id="c-ig2-sp"></canvas></div>
+    </div>
+    <div class="panel"><div class="panel-head"><span class="panel-title">X Side Pillar</span><span class="panel-sub">콘텐츠 유형별</span></div>
+      <div style="position:relative;height:224px;"><canvas id="c-x2-sp"></canvas></div>
+    </div>
+  </div>
+
+  <div class="sec-label"><span class="dot dot-ig"></span>Top 5 콘텐츠 · Engagement(View) 기준</div>
+  <div class="top5-controls">
+    <div class="ctrl-group">
+      <button class="ctrl-btn on" onclick="setP('month',this,'feb')">월별</button>
+      <button class="ctrl-btn" onclick="setP('week',this,'feb')">주차별</button>
+    </div>
+    <select class="week-selector" id="wk-feb" style="display:none;" onchange="renderTop5('feb')">
+      <option value="all">전체</option><option value="2">2주차</option><option value="3">3주차</option><option value="4">4주차</option><option value="5">5주차</option>
+    </select>
+    <button class="collab-toggle" id="cb-feb" onclick="toggleCollab('feb')">공동작업자 제외</button>
+  </div>
+  <div class="top5-grid">
+    <div class="top5-card"><div class="top5-head"><span class="dot dot-ig"></span><span class="top5-head-title">Instagram Top 5</span></div><div id="t5-ig-feb"></div></div>
+    <div class="top5-card"><div class="top5-head"><span class="dot dot-x"></span><span class="top5-head-title">X Top 5</span></div><div id="t5-x-feb"></div></div>
+  </div>
+
+  <div class="sec-label">26년 2월 — 월간 Summary</div>
+  <div class="sum-block"><div class="sum-head-bar">Postings · Impression · Reach · Views · Engagement · 2월</div>
+    <table class="sum-tbl"><thead><tr><th>Channel</th><th>Postings</th><th>Impression</th><th>Reach</th><th>Views</th><th>Engagement</th></tr></thead>
+    <tbody>
+      <tr><td>Instagram (IG)</td><td>19</td><td>0</td><td>401,093</td><td>67,064</td><td>27,814</td></tr>
+      <tr><td>X</td><td>16</td><td>9,678</td><td>—</td><td>—</td><td>1,193</td></tr>
+      <tr class="total"><td>합계</td><td>35</td><td>—</td><td>401,093</td><td>67,064</td><td>29,007</td></tr>
+    </tbody></table>
+  </div>
+</div></div>
+
+<!-- ══ YoY ══ -->
+<div class="section" id="sec-yoy"><div class="page-wrap">
+  <div class="sec-label">전년 대비 증감률 (26년 vs 25년)</div>
+  <div class="charts-equal">
+    <div class="panel"><div class="panel-head"><span class="panel-title">IG Interaction · YoY</span><span class="panel-sub">25년 vs 26년</span></div>
+      <div style="position:relative;height:200px;"><canvas id="c-ig-yoy"></canvas></div>
+    </div>
+    <div class="panel"><div class="panel-head"><span class="panel-title">X Impression/Interaction · YoY</span><span class="panel-sub">25년 vs 26년</span></div>
+      <div style="position:relative;height:200px;"><canvas id="c-x-yoy"></canvas></div>
+    </div>
+  </div>
+  <div class="compare-card"><div class="compare-head">YoY 증감률 요약</div>
+    <div class="cs-row"><div class="cs-label">IG Interaction 1월</div><div class="cs-bars">
+      <div class="cs-bar-row"><span class="cs-plat" style="color:#E1306C;">26</span><div class="cs-track"><div class="cs-fill fill-ig" style="width:30%;"></div></div><span class="cs-val">150,536</span></div>
+      <div class="cs-bar-row"><span class="cs-plat" style="color:#aaa;">25</span><div class="cs-track"><div class="cs-fill" style="width:100%;background:#ccc;"></div></div><span class="cs-val">485,612</span></div>
+    </div><span class="neg">↓69.0%</span></div>
+    <div class="cs-row"><div class="cs-label">IG Interaction 2월</div><div class="cs-bars">
+      <div class="cs-bar-row"><span class="cs-plat" style="color:#E1306C;">26</span><div class="cs-track"><div class="cs-fill fill-ig" style="width:5%;"></div></div><span class="cs-val">27,814</span></div>
+      <div class="cs-bar-row"><span class="cs-plat" style="color:#aaa;">25</span><div class="cs-track"><div class="cs-fill" style="width:100%;background:#ccc;"></div></div><span class="cs-val">492,913</span></div>
+    </div><span class="neg">↓94.4%</span></div>
+    <div class="cs-row"><div class="cs-label">IG Reach 2월</div><div class="cs-bars">
+      <div class="cs-bar-row"><span class="cs-plat" style="color:#E1306C;">26</span><div class="cs-track"><div class="cs-fill fill-ig" style="width:3%;"></div></div><span class="cs-val">401,093</span></div>
+      <div class="cs-bar-row"><span class="cs-plat" style="color:#aaa;">25</span><div class="cs-track"><div class="cs-fill" style="width:100%;background:#ccc;"></div></div><span class="cs-val">10,029,061</span></div>
+    </div><span class="neg">↓96.0%</span></div>
+    <div class="cs-row"><div class="cs-label">X Impression 1월</div><div class="cs-bars">
+      <div class="cs-bar-row"><span class="cs-plat" style="color:#111;">26</span><div class="cs-track"><div class="cs-fill fill-x" style="width:28%;"></div></div><span class="cs-val">9,599</span></div>
+      <div class="cs-bar-row"><span class="cs-plat" style="color:#aaa;">25</span><div class="cs-track"><div class="cs-fill" style="width:100%;background:#ccc;"></div></div><span class="cs-val">33,639</span></div>
+    </div><span class="neg">↓71.5%</span></div>
+    <div class="cs-row"><div class="cs-label">X Interaction 2월</div><div class="cs-bars">
+      <div class="cs-bar-row"><span class="cs-plat" style="color:#111;">26</span><div class="cs-track"><div class="cs-fill fill-x" style="width:100%;"></div></div><span class="cs-val">1,193</span></div>
+      <div class="cs-bar-row"><span class="cs-plat" style="color:#aaa;">25</span><div class="cs-track"><div class="cs-fill" style="width:36%;background:#ccc;"></div></div><span class="cs-val">435</span></div>
+    </div><span class="pos">↑174.3%</span></div>
+  </div>
+  <div class="sum-block"><div class="sum-head-bar">1~2월 누적 Summary · YoY</div>
+    <table class="sum-tbl"><thead><tr><th>채널 / 연도</th><th>Postings</th><th>Impression</th><th>Reach</th><th>Views</th><th>Engagement</th></tr></thead>
+    <tbody>
+      <tr><td>IG 2026 (1~2월)</td><td>38</td><td>—</td><td>10,691,892</td><td>—</td><td>178,350</td></tr>
+      <tr><td>IG 2025 (1~2월)</td><td>—</td><td>—</td><td>10,029,061</td><td>—</td><td>978,525</td></tr>
+      <tr><td>X 2026 (1~2월)</td><td>35</td><td>19,277</td><td>—</td><td>—</td><td>1,840</td></tr>
+      <tr><td>X 2025 (1~2월)</td><td>—</td><td>45,270</td><td>—</td><td>—</td><td>1,342</td></tr>
+      <tr class="total"><td>합계 2026</td><td>73</td><td>19,277</td><td>10,691,892</td><td>—</td><td>180,190</td></tr>
+    </tbody></table>
+  </div>
+</div></div>
+
+<!-- ══ REPORT SECTIONS ══ -->
+<div class="section" id="sec-fe-r2"><div class="page-wrap">
+  <div class="report-header">
+    <div><div class="report-meta">Digital Communications</div><div class="report-title">Hankook Tire Motorsports Social Media</div>
+      <div class="report-info">· Date : <strong>7 Jan ~ 23 Jan 2026</strong><br>· Race : <strong>🇲🇽 2026 Formula E : Round 2 MEXICO CITY</strong><br>· Channel : <strong>Instagram, X</strong></div>
+    </div><div class="hk-logo">⟨HANKOOK<small>driving emotion</small></div>
+  </div>
+  <div class="r-kpi-strip">
+    <div class="r-kpi-box"><div class="r-kpi-label">Postings</div><div class="r-kpi-val">18</div></div>
+    <div class="r-kpi-box"><div class="r-kpi-label">Impression (X)</div><div class="r-kpi-val">2.7K</div></div>
+    <div class="r-kpi-box"><div class="r-kpi-label">Reach (IG)</div><div class="r-kpi-val">9.3M</div></div>
+    <div class="r-kpi-box"><div class="r-kpi-label">Views (IG)</div><div class="r-kpi-val">7.0M</div></div>
+    <div class="r-kpi-box"><div class="r-kpi-label">Engagement</div><div class="r-kpi-val">92.2K</div></div>
+  </div>
+  <div class="r-tbl-wrap"><div class="r-tbl-head"><span class="r-tbl-head-title">Content Performance — 🇲🇽 2026 Formula E : Round 2 MEXICO CITY</span></div>
+    <table class="r-tbl"><thead><tr><th>Content Name</th><th>Ch</th><th>Type</th><th>Impression</th><th>Total View</th><th>Total Reach</th><th>Interaction</th><th>Engagement</th><th>E/R</th><th>URL</th></tr></thead>
+    <tbody><tr class="ig-row group-first"><td class="content-cell"><span class="ctitle">2026 Formula E : Round 2  MEXICO CITY Booth Event 안내</span><span class="csub">2026-01-07 · 부스 이벤트 홍보 <span class="badge b-paid">Paid</span></span></td><td><span class="ch ch-ig">IG</span></td><td><span class="typ">Video</span></td><td class="dash-c">-</td><td>4,112,932</td><td>3,926,211</td><td>426</td><td>4,114,848</td><td>104.80%</td><td><a class="link-a" href="https://www.instagram.com/reel/DTM7U7KD-z6/" target="_blank">↗</a></td></tr>
+<tr class="x-row"><td class="content-cell"><span class="ctitle">2026 Formula E : Round 2  MEXICO CITY Booth Event 안내</span><span class="csub">2026-01-07</span></td><td><span class="ch ch-x">X</span></td><td><span class="typ">Video</span></td><td>264</td><td class="dash-c">-</td><td class="dash-c">-</td><td>9</td><td>9</td><td class="dash-c">-</td><td><a class="link-a" href="https://x.com/Hankook_Sport/status/2009132131809927497" target="_blank">↗</a></td></tr>
+<tr class="ig-row group-first"><td class="content-cell"><span class="ctitle">2026 Formula E Mexico City Preview Video</span><span class="csub">2026-01-09 · 프리뷰 <span class="badge b-paid">Paid</span></span></td><td><span class="ch ch-ig">IG</span></td><td><span class="typ">Video</span></td><td class="dash-c">-</td><td>710,750</td><td>601,572</td><td>19,601</td><td>731,437</td><td>121.59%</td><td><a class="link-a" href="https://www.instagram.com/reel/DTUfBtpFUPa/" target="_blank">↗</a></td></tr>
+<tr class="x-row"><td class="content-cell"><span class="ctitle">2026 Formula E Mexico City Preview Video</span><span class="csub">2026-01-09</span></td><td><span class="ch ch-x">X</span></td><td><span class="typ">Video</span></td><td>323</td><td class="dash-c">-</td><td class="dash-c">-</td><td>16</td><td>16</td><td class="dash-c">-</td><td><a class="link-a" href="https://x.com/Hankook_Sport/status/2009535620075413530" target="_blank">↗</a></td></tr>
+<tr class="ig-row group-first"><td class="content-cell"><span class="ctitle">Upcoming D-1 🇲🇽 2026 Formula E : Round 2 MEXICO CITY</span><span class="csub">2026-01-09 · 경기 사전 콘텐츠 <span class="badge b-paid">Paid</span></span></td><td><span class="ch ch-ig">IG</span></td><td><span class="typ">Image</span></td><td class="dash-c">-</td><td>0</td><td>222,983</td><td>32,799</td><td>35,800</td><td>16.06%</td><td><a class="link-a" href="https://www.instagram.com/p/DTSE7AmAdkf/" target="_blank">↗</a></td></tr>
+<tr class="x-row"><td class="content-cell"><span class="ctitle">Upcoming D-1 🇲🇽 2026 Formula E : Round 2 MEXICO CITY</span><span class="csub">2026-01-09</span></td><td><span class="ch ch-x">X</span></td><td><span class="typ">Video</span></td><td>413</td><td class="dash-c">-</td><td class="dash-c">-</td><td>30</td><td>30</td><td class="dash-c">-</td><td><a class="link-a" href="https://x.com/Hankook_Sport/status/2009874654060785742" target="_blank">↗</a></td></tr>
+<tr class="ig-row group-first"><td class="content-cell"><span class="ctitle">🇲🇽 2026 Formula E : Round 2 MEXICO CITY Highlight #1 수급</span><span class="csub">2026-01-10 · 하이라이트 <span class="badge b-paid">Paid</span></span></td><td><span class="ch ch-ig">IG</span></td><td><span class="typ">Video</span></td><td class="dash-c">-</td><td>775,082</td><td>610,311</td><td>26,778</td><td>802,752</td><td>131.53%</td><td><a class="link-a" href="https://www.instagram.com/reel/DTW14ZLjnGq/" target="_blank">↗</a></td></tr>
+<tr class="x-row"><td class="content-cell"><span class="ctitle">🇲🇽 2026 Formula E : Round 2 MEXICO CITY Highlight #1 수급</span><span class="csub">2026-01-10</span></td><td><span class="ch ch-x">X</span></td><td><span class="typ">Video</span></td><td>251</td><td class="dash-c">-</td><td class="dash-c">-</td><td>14</td><td>14</td><td class="dash-c">-</td><td><a class="link-a" href="https://x.com/Hankook_Sport/status/2010206553606177119" target="_blank">↗</a></td></tr>
+<tr class="ig-row group-first"><td class="content-cell"><span class="ctitle">🇲🇽 2026 Formula E : Round 2 MEXICO CITY Result</span><span class="csub">2026-01-12 · 경기 결과 콘텐츠 <span class="badge b-paid">Paid</span></span></td><td><span class="ch ch-ig">IG</span></td><td><span class="typ">Image</span></td><td class="dash-c">-</td><td>0</td><td>2,857,629</td><td>564</td><td>3,371</td><td>0.12%</td><td><a class="link-a" href="https://www.instagram.com/p/DTcYVPJDvfE/" target="_blank">↗</a></td></tr>
+<tr class="x-row"><td class="content-cell"><span class="ctitle">🇲🇽 2026 Formula E : Round 2 MEXICO CITY Result</span><span class="csub">2026-01-12</span></td><td><span class="ch ch-x">X</span></td><td><span class="typ">Video</span></td><td>268</td><td class="dash-c">-</td><td class="dash-c">-</td><td>22</td><td>22</td><td class="dash-c">-</td><td><a class="link-a" href="https://x.com/Hankook_Sport/status/2010985885962289341" target="_blank">↗</a></td></tr>
+<tr class="ig-row group-first"><td class="content-cell"><span class="ctitle">🇲🇽 2026 Formula E : Round 2 MEXICO CITY Booth Event 당첨자</span><span class="csub">2026-01-14 · 부스이벤트 결과 <span class="badge b-organic">Organic</span></span></td><td><span class="ch ch-ig">IG</span></td><td><span class="typ">Image</span></td><td class="dash-c">-</td><td>0</td><td>3,434</td><td>223</td><td>223</td><td>6.49%</td><td><a class="link-a" href="https://www.instagram.com/p/DTePbT9jtxt/" target="_blank">↗</a></td></tr>
+<tr class="x-row"><td class="content-cell"><span class="ctitle">🇲🇽 2026 Formula E : Round 2 MEXICO CITY Booth Event 당첨자</span><span class="csub">2026-01-14</span></td><td><span class="ch ch-x">X</span></td><td><span class="typ">Video</span></td><td>226</td><td class="dash-c">-</td><td class="dash-c">-</td><td>13</td><td>13</td><td class="dash-c">-</td><td><a class="link-a" href="https://x.com/Hankook_Sport/status/2011347553410039935" target="_blank">↗</a></td></tr>
+<tr class="ig-row group-first"><td class="content-cell"><span class="ctitle">🇲🇽 2026 Formula E : Round 2 MEXICO CITY Highlights on s</span><span class="csub">2026-01-14 · 하이라이트 <span class="badge b-paid">Paid</span></span></td><td><span class="ch ch-ig">IG</span></td><td><span class="typ">Video</span></td><td class="dash-c">-</td><td>988,438</td><td>812,191</td><td>5,158</td><td>995,001</td><td>122.51%</td><td><a class="link-a" href="https://www.instagram.com/reel/DTe88WijFv5/" target="_blank">↗</a></td></tr>
+<tr class="x-row"><td class="content-cell"><span class="ctitle">🇲🇽 2026 Formula E : Round 2 MEXICO CITY Highlights on s</span><span class="csub">2026-01-14</span></td><td><span class="ch ch-x">X</span></td><td><span class="typ">Video</span></td><td>199</td><td class="dash-c">-</td><td class="dash-c">-</td><td>14</td><td>14</td><td class="dash-c">-</td><td><a class="link-a" href="https://x.com/Hankook_Sport/status/2011247828233044291" target="_blank">↗</a></td></tr>
+<tr class="ig-row group-first"><td class="content-cell"><span class="ctitle">🇲🇽 2026 Formula E : Round 2 Tire Focus Highlight</span><span class="csub">2026-01-23 · 경기 사전 콘텐츠 <span class="badge b-paid">Paid</span></span></td><td><span class="ch ch-ig">IG</span></td><td><span class="typ">Video</span></td><td class="dash-c">-</td><td>371,969</td><td>276,790</td><td>6,452</td><td>378,421</td><td>136.72%</td><td><a class="link-a" href="https://www.instagram.com/reel/DT2IGVFjEim/" target="_blank">↗</a></td></tr>
+<tr class="x-row"><td class="content-cell"><span class="ctitle">🇲🇽 2026 Formula E : Round 2 Tire Focus Highlight</span><span class="csub">2026-01-23</span></td><td><span class="ch ch-x">X</span></td><td><span class="typ">Video</span></td><td>437</td><td class="dash-c">-</td><td class="dash-c">-</td><td>20</td><td>20</td><td class="dash-c">-</td><td><a class="link-a" href="https://x.com/Hankook_Sport/status/2014609048868372794" target="_blank">↗</a></td></tr>
+<tr class="x-row group-first"><td class="content-cell"><span class="ctitle">Upcoming D-1 2026 WRC : Round 2 SWEDEN Video Ver.</span><span class="csub">2026-02-12</span></td><td><span class="ch ch-x">X</span></td><td><span class="typ">Image</span></td><td>307</td><td class="dash-c">-</td><td class="dash-c">-</td><td>37</td><td>37</td><td class="dash-c">-</td><td><a class="link-a" href="https://x.com/Hankook_Sport/status/2021859320737280099" target="_blank">↗</a></td></tr>
+<tr class="ig-row group-first"><td class="content-cell"><span class="ctitle">🇸🇪 2026 WRC : Round 2 SWEDEN Result</span><span class="csub">2026-02-15 · 경기 결과 콘텐츠 <span class="badge b-organic">Organic</span></span></td><td><span class="ch ch-ig">IG</span></td><td><span class="typ">Image</span></td><td class="dash-c">-</td><td>0</td><td>1,925</td><td>62</td><td>62</td><td>3.22%</td><td><a class="link-a" href="https://www.instagram.com/p/DUzn93MEcBj/" target="_blank">↗</a></td></tr>
+</tbody></table>
+  </div>
+</div></div>
+<div class="section" id="sec-fe-r3"><div class="page-wrap">
+  <div class="report-header">
+    <div><div class="report-meta">Digital Communications</div><div class="report-title">Hankook Tire Motorsports Social Media</div>
+      <div class="report-info">· Date : <strong>29 Jan ~ 5 Feb 2026</strong><br>· Race : <strong>🇺🇸 2026 Formula E : Round 3 MIAMI</strong><br>· Channel : <strong>Instagram, X</strong></div>
+    </div><div class="hk-logo">⟨HANKOOK<small>driving emotion</small></div>
+  </div>
+  <div class="r-kpi-strip">
+    <div class="r-kpi-box"><div class="r-kpi-label">Postings</div><div class="r-kpi-val">14</div></div>
+    <div class="r-kpi-box"><div class="r-kpi-label">Impression (X)</div><div class="r-kpi-val">1.5K</div></div>
+    <div class="r-kpi-box"><div class="r-kpi-label">Reach (IG)</div><div class="r-kpi-val">21.9K</div></div>
+    <div class="r-kpi-box"><div class="r-kpi-label">Views (IG)</div><div class="r-kpi-val">20.3K</div></div>
+    <div class="r-kpi-box"><div class="r-kpi-label">Engagement</div><div class="r-kpi-val">883</div></div>
+  </div>
+  <div class="r-tbl-wrap"><div class="r-tbl-head"><span class="r-tbl-head-title">Content Performance — 🇺🇸 2026 Formula E : Round 3 MIAMI</span></div>
+    <table class="r-tbl"><thead><tr><th>Content Name</th><th>Ch</th><th>Type</th><th>Impression</th><th>Total View</th><th>Total Reach</th><th>Interaction</th><th>Engagement</th><th>E/R</th><th>URL</th></tr></thead>
+    <tbody><tr class="ig-row group-first"><td class="content-cell"><span class="ctitle">🇺🇸 Formula E 2026 : Round 3 MIAMI Booth Event 안내</span><span class="csub">2026-01-29 · 경기사전 콘텐츠 <span class="badge b-organic">Organic</span></span></td><td><span class="ch ch-ig">IG</span></td><td><span class="typ">Video</span></td><td class="dash-c">-</td><td>1,932</td><td>1,231</td><td>29</td><td>1,961</td><td>159.30%</td><td><a class="link-a" href="https://www.instagram.com/reel/DUFk5CYmMA6/" target="_blank">↗</a></td></tr>
+<tr class="x-row"><td class="content-cell"><span class="ctitle">🇺🇸 Formula E 2026 : Round 3 MIAMI Booth Event 안내</span><span class="csub">2026-01-29</span></td><td><span class="ch ch-x">X</span></td><td><span class="typ">Image</span></td><td>154</td><td class="dash-c">-</td><td class="dash-c">-</td><td>7</td><td>7</td><td class="dash-c">-</td><td><a class="link-a" href="https://x.com/Hankook_Sport/status/2017145768357003696" target="_blank">↗</a></td></tr>
+<tr class="ig-row group-first"><td class="content-cell"><span class="ctitle">🇺🇸 Formula E 2026 : Round 3 MIAMI Highlight #1</span><span class="csub">2026-01-30 · 프리뷰 <span class="badge b-organic">Organic</span></span></td><td><span class="ch ch-ig">IG</span></td><td><span class="typ">Video</span></td><td class="dash-c">-</td><td>3,172</td><td>2,027</td><td>47</td><td>3,219</td><td>158.81%</td><td><a class="link-a" href="https://www.instagram.com/reel/DUKe9qHEXhx/" target="_blank">↗</a></td></tr>
+<tr class="x-row"><td class="content-cell"><span class="ctitle">🇺🇸 Formula E 2026 : Round 3 MIAMI Highlight #1</span><span class="csub">2026-01-30</span></td><td><span class="ch ch-x">X</span></td><td><span class="typ">Video</span></td><td>269</td><td class="dash-c">-</td><td class="dash-c">-</td><td>17</td><td>17</td><td class="dash-c">-</td><td><a class="link-a" href="https://x.com/Hankook_Sport/status/2017100459941458210" target="_blank">↗</a></td></tr>
+<tr class="ig-row group-first"><td class="content-cell"><span class="ctitle">"Upcoming D-1 🇺🇸 Formula E 2026 : Round 3 MIAMI"</span><span class="csub">2026-01-30 · 경기사전 콘텐츠 <span class="badge b-organic">Organic</span></span></td><td><span class="ch ch-ig">IG</span></td><td><span class="typ">Image</span></td><td class="dash-c">-</td><td>0</td><td>1,452</td><td>53</td><td>53</td><td>3.65%</td><td><a class="link-a" href="https://www.instagram.com/p/DUIJkzjgWEo/" target="_blank">↗</a></td></tr>
+<tr class="x-row"><td class="content-cell"><span class="ctitle">"Upcoming D-1 🇺🇸 Formula E 2026 : Round 3 MIAMI"</span><span class="csub">2026-01-30</span></td><td><span class="ch ch-x">X</span></td><td><span class="typ">Image</span></td><td>246</td><td class="dash-c">-</td><td class="dash-c">-</td><td>4</td><td>4</td><td class="dash-c">-</td><td><a class="link-a" href="https://x.com/Hankook_Sport/status/2017474652248179026" target="_blank">↗</a></td></tr>
+<tr class="ig-row group-first"><td class="content-cell"><span class="ctitle">🇺🇸 Formula E 2026 : Round 3 MIAMI Highlight #2</span><span class="csub">2026-01-31 · 하이라이트 <span class="badge b-organic">Organic</span></span></td><td><span class="ch ch-ig">IG</span></td><td><span class="typ">Video</span></td><td class="dash-c">-</td><td>2,139</td><td>1,311</td><td>50</td><td>2,189</td><td>166.97%</td><td><a class="link-a" href="https://www.instagram.com/reel/DUM-mfVj5Pv/" target="_blank">↗</a></td></tr>
+<tr class="x-row"><td class="content-cell"><span class="ctitle">🇺🇸 Formula E 2026 : Round 3 MIAMI Highlight #2</span><span class="csub">2026-01-31</span></td><td><span class="ch ch-x">X</span></td><td><span class="typ">Video</span></td><td>193</td><td class="dash-c">-</td><td class="dash-c">-</td><td>17</td><td>17</td><td class="dash-c">-</td><td><a class="link-a" href="https://x.com/Hankook_Sport/status/2017825239322005741" target="_blank">↗</a></td></tr>
+<tr class="ig-row group-first"><td class="content-cell"><span class="ctitle">Formula E 2026 : Round 3 MIAMI  Result</span><span class="csub">2026-02-02 · 경기 결과 콘텐츠 <span class="badge b-organic">Organic</span></span></td><td><span class="ch ch-ig">IG</span></td><td><span class="typ">Image</span></td><td class="dash-c">-</td><td>0</td><td>1,737</td><td>71</td><td>71</td><td>4.09%</td><td><a class="link-a" href="https://www.instagram.com/p/DUP3_RZD-Jb/" target="_blank">↗</a></td></tr>
+<tr class="x-row"><td class="content-cell"><span class="ctitle">Formula E 2026 : Round 3 MIAMI  Result</span><span class="csub">2026-02-02</span></td><td><span class="ch ch-x">X</span></td><td><span class="typ">Image</span></td><td>230</td><td class="dash-c">-</td><td class="dash-c">-</td><td>25</td><td>25</td><td class="dash-c">-</td><td><a class="link-a" href="https://x.com/Hankook_Sport/status/2018236184548499658" target="_blank">↗</a></td></tr>
+<tr class="ig-row group-first"><td class="content-cell"><span class="ctitle">Formula E 2026 : Round 3 MIAMI Booth Event 당첨자발표</span><span class="csub">2026-02-04 · 부스이벤트 결과 <span class="badge b-organic">Organic</span></span></td><td><span class="ch ch-ig">IG</span></td><td><span class="typ">Image</span></td><td class="dash-c">-</td><td>0</td><td>3,471</td><td>168</td><td>168</td><td>4.84%</td><td><a class="link-a" href="https://www.instagram.com/p/DUVBlfGiAEe/" target="_blank">↗</a></td></tr>
+<tr class="x-row"><td class="content-cell"><span class="ctitle">Formula E 2026 : Round 3 MIAMI Booth Event 당첨자발표</span><span class="csub">2026-02-04</span></td><td><span class="ch ch-x">X</span></td><td><span class="typ">Image</span></td><td>185</td><td class="dash-c">-</td><td class="dash-c">-</td><td>24</td><td>24</td><td class="dash-c">-</td><td><a class="link-a" href="https://x.com/Hankook_Sport/status/2018957698490888455" target="_blank">↗</a></td></tr>
+<tr class="ig-row group-first"><td class="content-cell"><span class="ctitle">Formula E 2026 : Round 3 MIAMI Max preparing for the ra</span><span class="csub">2026-02-05 · 하이라이트 <span class="badge b-organic">Organic</span></span></td><td><span class="ch ch-ig">IG</span></td><td><span class="typ">Video</span></td><td class="dash-c">-</td><td>13,028</td><td>10,702</td><td>357</td><td>13,385</td><td>125.07%</td><td><a class="link-a" href="https://www.instagram.com/reel/DUXmZ2vDfpX/" target="_blank">↗</a></td></tr>
+<tr class="x-row"><td class="content-cell"><span class="ctitle">Formula E 2026 : Round 3 MIAMI Max preparing for the ra</span><span class="csub">2026-02-05</span></td><td><span class="ch ch-x">X</span></td><td><span class="typ">Video</span></td><td>265</td><td class="dash-c">-</td><td class="dash-c">-</td><td>14</td><td>14</td><td class="dash-c">-</td><td><a class="link-a" href="https://x.com/Hankook_Sport/status/2019320094434980032" target="_blank">↗</a></td></tr>
+</tbody></table>
+  </div>
+</div></div>
+<div class="section" id="sec-fe-r45"><div class="page-wrap">
+  <div class="report-header">
+    <div><div class="report-meta">Digital Communications</div><div class="report-title">Hankook Tire Motorsports Social Media</div>
+      <div class="report-info">· Date : <strong>10 Feb ~ 19 Feb 2026</strong><br>· Race : <strong>🇸🇦 2026 Formula E : Round 4 & 5 Jeddah, SAUDI ARABIA</strong><br>· Channel : <strong>Instagram, X</strong></div>
+    </div><div class="hk-logo">⟨HANKOOK<small>driving emotion</small></div>
+  </div>
+  <div class="r-kpi-strip">
+    <div class="r-kpi-box"><div class="r-kpi-label">Postings</div><div class="r-kpi-val">12</div></div>
+    <div class="r-kpi-box"><div class="r-kpi-label">Impression (X)</div><div class="r-kpi-val">1.2K</div></div>
+    <div class="r-kpi-box"><div class="r-kpi-label">Reach (IG)</div><div class="r-kpi-val">24.7K</div></div>
+    <div class="r-kpi-box"><div class="r-kpi-label">Views (IG)</div><div class="r-kpi-val">32.0K</div></div>
+    <div class="r-kpi-box"><div class="r-kpi-label">Engagement</div><div class="r-kpi-val">522</div></div>
+  </div>
+  <div class="r-tbl-wrap"><div class="r-tbl-head"><span class="r-tbl-head-title">Content Performance — 🇸🇦 2026 Formula E : Round 4 & 5 Jeddah, SAUDI ARABIA</span></div>
+    <table class="r-tbl"><thead><tr><th>Content Name</th><th>Ch</th><th>Type</th><th>Impression</th><th>Total View</th><th>Total Reach</th><th>Interaction</th><th>Engagement</th><th>E/R</th><th>URL</th></tr></thead>
+    <tbody><tr class="ig-row group-first"><td class="content-cell"><span class="ctitle">2026 Formula E : Round 4 & 5 Jeddah, SAUDI ARABIA Booth</span><span class="csub">2026-02-19 · 부스이벤트 결과 <span class="badge b-organic">Organic</span></span></td><td><span class="ch ch-ig">IG</span></td><td><span class="typ">Image</span></td><td class="dash-c">-</td><td>0</td><td>1,974</td><td>86</td><td>86</td><td>4.36%</td><td><a class="link-a" href="https://www.instagram.com/p/DU7peukj2-y/" target="_blank">↗</a></td></tr>
+<tr class="x-row"><td class="content-cell"><span class="ctitle">2026 Formula E : Round 4 & 5 Jeddah, SAUDI ARABIA Booth</span><span class="csub">2026-02-19</span></td><td><span class="ch ch-x">X</span></td><td><span class="typ">Image</span></td><td>150</td><td class="dash-c">-</td><td class="dash-c">-</td><td>12</td><td>12</td><td class="dash-c">-</td><td><a class="link-a" href="https://x.com/Hankook_Sport/status/2024393520652468570" target="_blank">↗</a></td></tr>
+<tr class="ig-row group-first"><td class="content-cell"><span class="ctitle">Upcoming D-1 2026 Formula E : Round 4 & 5 SAUDI ARABIA</span><span class="csub">2026-02-12 · 경기사전 콘텐츠 <span class="badge b-organic">Organic</span></span></td><td><span class="ch ch-ig">IG</span></td><td><span class="typ">Image</span></td><td class="dash-c">-</td><td>0</td><td>1,897</td><td>38</td><td>38</td><td>2.00%</td><td><a class="link-a" href="https://www.instagram.com/p/DUprV7yjzMH/" target="_blank">↗</a></td></tr>
+<tr class="ig-row group-first"><td class="content-cell"><span class="ctitle">🇸🇦 2026 Formula E : Round 4 & 5 SAUDI ARABIA Highlight </span><span class="csub">2026-02-14 · 하이라이트 <span class="badge b-organic">Organic</span></span></td><td><span class="ch ch-ig">IG</span></td><td><span class="typ">Video</span></td><td class="dash-c">-</td><td>22,862</td><td>14,923</td><td>132</td><td>22,994</td><td>154.08%</td><td><a class="link-a" href="https://www.instagram.com/reel/DUxBvgwkXVo/" target="_blank">↗</a></td></tr>
+<tr class="x-row"><td class="content-cell"><span class="ctitle">🇸🇦 2026 Formula E : Round 4 & 5 SAUDI ARABIA Highlight </span><span class="csub">2026-02-15</span></td><td><span class="ch ch-x">X</span></td><td><span class="typ">Video</span></td><td>256</td><td class="dash-c">-</td><td class="dash-c">-</td><td>9</td><td>9</td><td class="dash-c">-</td><td><a class="link-a" href="https://x.com/Hankook_Sport/status/2022890680092364891" target="_blank">↗</a></td></tr>
+<tr class="x-row group-first"><td class="content-cell"><span class="ctitle">🇸🇦 2026 Formula E : Round 4 & 5 SAUDI ARABIA Result</span><span class="csub">2026-02-16</span></td><td><span class="ch ch-x">X</span></td><td><span class="typ">Image</span></td><td>163</td><td class="dash-c">-</td><td class="dash-c">-</td><td>20</td><td>20</td><td class="dash-c">-</td><td><a class="link-a" href="https://x.com/Hankook_Sport/status/2023268603550712030" target="_blank">↗</a></td></tr>
+</tbody></table>
+  </div>
+</div></div>
+<div class="section" id="sec-wrc-r1"><div class="page-wrap">
+  <div class="report-header">
+    <div><div class="report-meta">Digital Communications</div><div class="report-title">Hankook Tire Motorsports Social Media</div>
+      <div class="report-info">· Date : <strong>16 Jan ~ 28 Jan 2026</strong><br>· Race : <strong>🇲🇨 2026 WRC : Round 1 Rallye MONACO</strong><br>· Channel : <strong>Instagram, X</strong></div>
+    </div><div class="hk-logo">⟨HANKOOK<small>driving emotion</small></div>
+  </div>
+  <div class="r-kpi-strip">
+    <div class="r-kpi-box"><div class="r-kpi-label">Postings</div><div class="r-kpi-val">8</div></div>
+    <div class="r-kpi-box"><div class="r-kpi-label">Impression (X)</div><div class="r-kpi-val">5.6K</div></div>
+    <div class="r-kpi-box"><div class="r-kpi-label">Reach (IG)</div><div class="r-kpi-val">410.2K</div></div>
+    <div class="r-kpi-box"><div class="r-kpi-label">Views (IG)</div><div class="r-kpi-val">295.3K</div></div>
+    <div class="r-kpi-box"><div class="r-kpi-label">Engagement</div><div class="r-kpi-val">18.0K</div></div>
+  </div>
+  <div class="r-tbl-wrap"><div class="r-tbl-head"><span class="r-tbl-head-title">Content Performance — 🇲🇨 2026 WRC : Round 1 Rallye MONACO</span></div>
+    <table class="r-tbl"><thead><tr><th>Content Name</th><th>Ch</th><th>Type</th><th>Impression</th><th>Total View</th><th>Total Reach</th><th>Interaction</th><th>Engagement</th><th>E/R</th><th>URL</th></tr></thead>
+    <tbody><tr class="ig-row group-first"><td class="content-cell"><span class="ctitle">🇲🇨 2026 WRC : Round 1 MONACO Tire Information</span><span class="csub">2026-01-20 · 경기 사전 콘텐츠 <span class="badge b-paid">Paid</span></span></td><td><span class="ch ch-ig">IG</span></td><td><span class="typ">Video</span></td><td class="dash-c">-</td><td>292,685</td><td>235,314</td><td>702</td><td>293,832</td><td>124.87%</td><td><a class="link-a" href="https://www.instagram.com/reel/DTuczm0iH07/" target="_blank">↗</a></td></tr>
+<tr class="x-row"><td class="content-cell"><span class="ctitle">🇲🇨 2026 WRC : Round 1 MONACO Tire Information</span><span class="csub">2026-01-20</span></td><td><span class="ch ch-x">X</span></td><td><span class="typ">Video</span></td><td>926</td><td class="dash-c">-</td><td class="dash-c">-</td><td>82</td><td>82</td><td class="dash-c">-</td><td><a class="link-a" href="https://x.com/Hankook_Sport/status/2013529043996676554" target="_blank">↗</a></td></tr>
+<tr class="ig-row group-first"><td class="content-cell"><span class="ctitle">Upcoming D-1 🇲🇨 2026 WRC : Round 1 MONACO</span><span class="csub">2026-01-21 · 경기 사전 콘텐츠 <span class="badge b-paid">Paid</span></span></td><td><span class="ch ch-ig">IG</span></td><td><span class="typ">Image</span></td><td class="dash-c">-</td><td>0</td><td>171,326</td><td>16,476</td><td>16,476</td><td>9.62%</td><td><a class="link-a" href="https://www.instagram.com/p/DTw-at6jTuW/" target="_blank">↗</a></td></tr>
+<tr class="x-row"><td class="content-cell"><span class="ctitle">Upcoming D-1 🇲🇨 2026 WRC : Round 1 MONACO</span><span class="csub">2026-01-21</span></td><td><span class="ch ch-x">X</span></td><td><span class="typ">Video</span></td><td>3,703</td><td class="dash-c">-</td><td class="dash-c">-</td><td>456</td><td>456</td><td class="dash-c">-</td><td><a class="link-a" href="https://x.com/Hankook_Sport/status/2013884269953798298" target="_blank">↗</a></td></tr>
+<tr class="ig-row group-first"><td class="content-cell"><span class="ctitle">🇲🇨 2026 WRC : Round 1 MONACO Result</span><span class="csub">2026-01-26 · 경기 결과 콘텐츠 <span class="badge b-organic">Organic</span></span></td><td><span class="ch ch-ig">IG</span></td><td><span class="typ">Image</span></td><td class="dash-c">-</td><td>0</td><td>1,862</td><td>93</td><td>93</td><td>4.99%</td><td><a class="link-a" href="https://www.instagram.com/p/DT92bGWiCFy/" target="_blank">↗</a></td></tr>
+<tr class="x-row"><td class="content-cell"><span class="ctitle">🇲🇨 2026 WRC : Round 1 MONACO Result</span><span class="csub">2026-01-26</span></td><td><span class="ch ch-x">X</span></td><td><span class="typ">Image</span></td><td>578</td><td class="dash-c">-</td><td class="dash-c">-</td><td>98</td><td>98</td><td class="dash-c">-</td><td><a class="link-a" href="https://x.com/Hankook_Sport/status/2015700496007442870" target="_blank">↗</a></td></tr>
+<tr class="ig-row group-first"><td class="content-cell"><span class="ctitle">🇲🇨 2026 WRC : Round 1 MONACO Highlight</span><span class="csub">2026-01-28 · 하이라이트 <span class="badge b-organic">Organic</span></span></td><td><span class="ch ch-ig">IG</span></td><td><span class="typ">Video</span></td><td class="dash-c">-</td><td>2,617</td><td>1,714</td><td>57</td><td>2,674</td><td>156.01%</td><td><a class="link-a" href="https://www.instagram.com/reel/DUDAH6vgbuC/" target="_blank">↗</a></td></tr>
+<tr class="x-row"><td class="content-cell"><span class="ctitle">🇲🇨 2026 WRC : Round 1 MONACO Highlight</span><span class="csub">2026-01-28</span></td><td><span class="ch ch-x">X</span></td><td><span class="typ">Video</span></td><td>379</td><td class="dash-c">-</td><td class="dash-c">-</td><td>35</td><td>35</td><td class="dash-c">-</td><td><a class="link-a" href="https://x.com/Hankook_Sport/status/2016420991556321751" target="_blank">↗</a></td></tr>
+</tbody></table>
+  </div>
+</div></div>
+<div class="section" id="sec-wrc-r2"><div class="page-wrap">
+  <div class="report-header">
+    <div><div class="report-meta">Digital Communications</div><div class="report-title">Hankook Tire Motorsports Social Media</div>
+      <div class="report-info">· Date : <strong>9 Feb ~ 26 Feb 2026</strong><br>· Race : <strong>🇸🇪 2026 WRC : Round 2 Rally SWEDEN</strong><br>· Channel : <strong>Instagram, X</strong></div>
+    </div><div class="hk-logo">⟨HANKOOK<small>driving emotion</small></div>
+  </div>
+  <div class="r-kpi-strip">
+    <div class="r-kpi-box"><div class="r-kpi-label">Postings</div><div class="r-kpi-val">8</div></div>
+    <div class="r-kpi-box"><div class="r-kpi-label">Impression (X)</div><div class="r-kpi-val">6.8K</div></div>
+    <div class="r-kpi-box"><div class="r-kpi-label">Reach (IG)</div><div class="r-kpi-val">18.4K</div></div>
+    <div class="r-kpi-box"><div class="r-kpi-label">Views (IG)</div><div class="r-kpi-val">22.1K</div></div>
+    <div class="r-kpi-box"><div class="r-kpi-label">Engagement</div><div class="r-kpi-val">1.3K</div></div>
+  </div>
+  <div class="r-tbl-wrap"><div class="r-tbl-head"><span class="r-tbl-head-title">Content Performance — 🇸🇪 2026 WRC : Round 2 Rally SWEDEN</span></div>
+    <table class="r-tbl"><thead><tr><th>Content Name</th><th>Ch</th><th>Type</th><th>Impression</th><th>Total View</th><th>Total Reach</th><th>Interaction</th><th>Engagement</th><th>E/R</th><th>URL</th></tr></thead>
+    <tbody><tr class="ig-row group-first"><td class="content-cell"><span class="ctitle">2026 WRC : Round 2 SWEDEN Tire Information</span><span class="csub">2026-02-09 · 경기사전 콘텐츠 <span class="badge b-organic">Organic</span></span></td><td><span class="ch ch-ig">IG</span></td><td><span class="typ">Video</span></td><td class="dash-c">-</td><td>7,558</td><td>5,535</td><td>139</td><td>7,697</td><td>139.06%</td><td><a class="link-a" href="https://www.instagram.com/reel/DUh5lfgFc9l/" target="_blank">↗</a></td></tr>
+<tr class="x-row"><td class="content-cell"><span class="ctitle">2026 WRC : Round 2 SWEDEN Tire Information</span><span class="csub">2026-02-09</span></td><td><span class="ch ch-x">X</span></td><td><span class="typ">Video</span></td><td>4,027</td><td class="dash-c">-</td><td class="dash-c">-</td><td>398</td><td>398</td><td class="dash-c">-</td><td><a class="link-a" href="https://x.com/Hankook_Sport/status/2020769644982980794" target="_blank">↗</a></td></tr>
+<tr class="ig-row group-first"><td class="content-cell"><span class="ctitle">Upcoming D-1 2026 WRC : Round 2 SWEDEN</span><span class="csub">2026-02-11 · 경기 사전 콘텐츠 <span class="badge b-organic">Organic</span></span></td><td><span class="ch ch-ig">IG</span></td><td><span class="typ">Image</span></td><td class="dash-c">-</td><td>0</td><td>3,010</td><td>90</td><td>90</td><td>2.99%</td><td><a class="link-a" href="https://www.instagram.com/p/DUnFtWZjc9o/" target="_blank">↗</a></td></tr>
+<tr class="x-row"><td class="content-cell"><span class="ctitle">Upcoming D-1 2026 WRC : Round 2 SWEDEN</span><span class="csub">2026-02-11</span></td><td><span class="ch ch-x">X</span></td><td><span class="typ">Image</span></td><td>1,319</td><td class="dash-c">-</td><td class="dash-c">-</td><td>214</td><td>214</td><td class="dash-c">-</td><td><a class="link-a" href="https://x.com/Hankook_Sport/status/2021500351623626926" target="_blank">↗</a></td></tr>
+<tr class="ig-row group-first"><td class="content-cell"><span class="ctitle">Upcoming D-1 2026 WRC : Round 2 SWEDEN Video Ver.</span><span class="csub">2026-02-12 · 프리뷰 <span class="badge b-organic">Organic</span></span></td><td><span class="ch ch-ig">IG</span></td><td><span class="typ">Video</span></td><td class="dash-c">-</td><td>2,896</td><td>2,044</td><td>79</td><td>2,975</td><td>145.55%</td><td><a class="link-a" href="https://www.instagram.com/reel/DUpoANLDiXT/" target="_blank">↗</a></td></tr>
+<tr class="x-row group-first"><td class="content-cell"><span class="ctitle">🇸🇪 2026 WRC : Round 2 SWEDEN Result</span><span class="csub">2026-02-16</span></td><td><span class="ch ch-x">X</span></td><td><span class="typ">Image</span></td><td>1,034</td><td class="dash-c">-</td><td class="dash-c">-</td><td>235</td><td>235</td><td class="dash-c">-</td><td><a class="link-a" href="https://x.com/Hankook_Sport/status/2023264843655258257" target="_blank">↗</a></td></tr>
+<tr class="ig-row group-first"><td class="content-cell"><span class="ctitle">🇸🇪 2026 WRC : Round 2 SWEDEN Highlight</span><span class="csub">2026-02-20 · 하이라이트 <span class="badge b-organic">Organic</span></span></td><td><span class="ch ch-ig">IG</span></td><td><span class="typ">Video</span></td><td class="dash-c">-</td><td>11,631</td><td>7,801</td><td>86</td><td>11,717</td><td>150.20%</td><td><a class="link-a" href="https://www.instagram.com/reel/DU-OW9mARtH/" target="_blank">↗</a></td></tr>
+<tr class="x-row"><td class="content-cell"><span class="ctitle">🇸🇪 2026 WRC : Round 2 SWEDEN Highlight</span><span class="csub">2026-02-20</span></td><td><span class="ch ch-x">X</span></td><td><span class="typ">Video</span></td><td>421</td><td class="dash-c">-</td><td class="dash-c">-</td><td>50</td><td>50</td><td class="dash-c">-</td><td><a class="link-a" href="https://x.com/Hankook_Sport/status/2024755905426833500" target="_blank">↗</a></td></tr>
+</tbody></table>
+  </div>
+</div></div>
+<script>
+const CAT_SUBS={dashboard:['jan','feb','yoy'],report:['fe-r2','fe-r3','fe-r45','wrc-r1','wrc-r2']};
+let currentCat='dashboard';
+function switchCat(cat,btn){
+  currentCat=cat;
+  document.querySelectorAll('.gcat').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
+  document.getElementById('sub-dashboard').style.display=cat==='dashboard'?'flex':'none';
+  document.getElementById('sub-report').style.display=cat==='report'?'flex':'none';
+  const subEl=document.getElementById('sub-'+cat);
+  const firstBtn=subEl?subEl.querySelector('.gsub'):null;
+  if(firstBtn)firstBtn.click();
+}
+function switchSub(id,btn){
+  const subEl=document.getElementById('sub-'+currentCat);
+  if(subEl)subEl.querySelectorAll('.gsub').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('on'));
+  const t=document.getElementById('sec-'+id);if(t)t.classList.add('on');
+}
+function saveFw(ch){
+  const ids=ch==='ig'?['ig-fw','ig-fw-feb']:['x-fw','x-fw-feb'];
+  const active=ids.find(id=>document.getElementById(id)===document.activeElement);
+  if(!active)return;
+  const val=document.getElementById(active).value;
+  localStorage.setItem('hk_fw_'+ch,val);
+  ids.forEach(id=>{const el=document.getElementById(id);if(el)el.value=val;});
+  const saved=document.getElementById(active+'-saved');
+  if(saved){saved.style.opacity='1';setTimeout(()=>saved.style.opacity='0',1500);}
+}
+function loadFw(){
+  ['ig','x'].forEach(ch=>{
+    const v=localStorage.getItem('hk_fw_'+ch);
+    if(v)['ig-fw','ig-fw-feb','x-fw','x-fw-feb'].forEach(id=>{const el=document.getElementById(id);if(el&&id.startsWith(ch))el.value=v;});
+  });
+}
+
+// Top5
+const igJanData=[
+  {title:'2026 Formula E : Round 2  MEXICO CITY Booth Event 안내',side:'부스 이벤트 홍보',pillar:'Formula E',date:'2026-01-07',paid:true,collab:false,engView:4114848,week:2},
+  {title:'2026 Formula E Mexico City Preview Video',side:'프리뷰',pillar:'Formula E',date:'2026-01-09',paid:true,collab:false,engView:731437,week:2},
+  {title:'Upcoming D-1 🇲🇽 2026 Formula E : Round 2 MEXICO CITY',side:'경기 사전 콘텐츠',pillar:'Formula E',date:'2026-01-09',paid:true,collab:false,engView:35800,week:2},
+  {title:'🇲🇽 2026 Formula E : Round 2 MEXICO CITY Highlight #1 수급',side:'하이라이트',pillar:'Formula E',date:'2026-01-10',paid:true,collab:false,engView:802752,week:2},
+  {title:'🇲🇽 2026 Formula E : Round 2 MEXICO CITY Result',side:'경기 결과 콘텐츠',pillar:'Formula E',date:'2026-01-12',paid:true,collab:false,engView:3371,week:3},
+  {title:'🇲🇽 2026 Formula E : Round 2 MEXICO CITY Booth Event 당첨자발표',side:'부스이벤트 결과',pillar:'Formula E',date:'2026-01-14',paid:false,collab:false,engView:223,week:3},
+  {title:'🇲🇽 2026 Formula E : Round 2 MEXICO CITY Highlights on sight ',side:'하이라이트',pillar:'Formula E',date:'2026-01-14',paid:true,collab:false,engView:995001,week:3},
+  {title:'2026 WRC Season Calendar',side:'경기 사전 콘텐츠',pillar:'WRC',date:'2026-01-16',paid:true,collab:false,engView:33317,week:3},
+  {title:'2026 WRC Calendar Video ver',side:'경기 사전 콘텐츠',pillar:'WRC',date:'2026-01-19',paid:true,collab:false,engView:404479,week:4},
+  {title:'🇲🇨 2026 WRC : Round 1 MONACO Tire Information',side:'경기 사전 콘텐츠',pillar:'WRC',date:'2026-01-20',paid:true,collab:false,engView:293832,week:4},
+  {title:'Upcoming D-1 🇲🇨 2026 WRC : Round 1 MONACO',side:'경기 사전 콘텐츠',pillar:'WRC',date:'2026-01-21',paid:true,collab:false,engView:16476,week:4},
+  {title:'🇲🇽 2026 Formula E : Round 2 Tire Focus Highlight',side:'경기 사전 콘텐츠',pillar:'Formula E',date:'2026-01-23',paid:true,collab:false,engView:378421,week:4},
+  {title:'🇲🇨 2026 WRC : Round 1 MONACO Result',side:'경기 결과 콘텐츠',pillar:'WRC',date:'2026-01-26',paid:false,collab:false,engView:93,week:5},
+  {title:'🇲🇨 2026 WRC : Round 1 MONACO Highlight',side:'하이라이트',pillar:'WRC',date:'2026-01-28',paid:false,collab:false,engView:2674,week:5},
+  {title:'2026 Formula E S12 Hankook Moment Highlight ver',side:'프리뷰',pillar:'Formula E',date:'2026-01-29',paid:false,collab:false,engView:5116,week:5},
+  {title:'🇺🇸 Formula E 2026 : Round 3 MIAMI Booth Event 안내',side:'경기사전 콘텐츠',pillar:'Formula E',date:'2026-01-29',paid:false,collab:false,engView:1961,week:5},
+  {title:'🇺🇸 Formula E 2026 : Round 3 MIAMI Highlight #1',side:'프리뷰',pillar:'Formula E',date:'2026-01-30',paid:false,collab:false,engView:3219,week:5},
+  {title:'"Upcoming D-1 🇺🇸 Formula E 2026 : Round 3 MIAMI"',side:'경기사전 콘텐츠',pillar:'Formula E',date:'2026-01-30',paid:false,collab:false,engView:53,week:5},
+  {title:'🇺🇸 Formula E 2026 : Round 3 MIAMI Highlight #2',side:'하이라이트',pillar:'Formula E',date:'2026-01-31',paid:false,collab:false,engView:2189,week:5}
+];
+const xJanData=[
+  {title:'2026 Formula E : Round 2  MEXICO CITY Booth Event 안내',side:'부스 이벤트 홍보',pillar:'Formula E',date:'2026-01-07',paid:false,collab:false,engView:9,week:2},
+  {title:'2026 Formula E Mexico City Preview Video',side:'프리뷰',pillar:'Formula E',date:'2026-01-09',paid:false,collab:false,engView:16,week:2},
+  {title:'Upcoming D-1 🇲🇽 2026 Formula E : Round 2 MEXICO CITY',side:'경기 사전 콘텐츠',pillar:'Formula E',date:'2026-01-09',paid:false,collab:false,engView:30,week:2},
+  {title:'🇲🇽 2026 Formula E : Round 2 MEXICO CITY Highlight #1 수급',side:'하이라이트',pillar:'Formula E',date:'2026-01-10',paid:false,collab:false,engView:14,week:2},
+  {title:'🇲🇽 2026 Formula E : Round 2 MEXICO CITY Result',side:'경기 결과 콘텐츠',pillar:'Formula E',date:'2026-01-12',paid:false,collab:false,engView:22,week:3},
+  {title:'🇲🇽 2026 Formula E : Round 2 MEXICO CITY Booth Event 당첨자발표',side:'부스이벤트 결과',pillar:'Formula E',date:'2026-01-14',paid:false,collab:false,engView:13,week:3},
+  {title:'🇲🇽 2026 Formula E : Round 2 MEXICO CITY Highlights on sight ',side:'하이라이트',pillar:'Formula E',date:'2026-01-14',paid:false,collab:false,engView:14,week:3},
+  {title:'2026 WRC Season Calendar',side:'경기 사전 콘텐츠',pillar:'WRC',date:'2026-01-16',paid:false,collab:false,engView:35,week:3},
+  {title:'2026 WRC Calendar Video ver',side:'경기 사전 콘텐츠',pillar:'WRC',date:'2026-01-19',paid:false,collab:false,engView:10,week:4},
+  {title:'🇲🇨 2026 WRC : Round 1 MONACO Tire Information',side:'경기 사전 콘텐츠',pillar:'WRC',date:'2026-01-20',paid:false,collab:false,engView:82,week:4},
+  {title:'Upcoming D-1 🇲🇨 2026 WRC : Round 1 MONACO',side:'경기 사전 콘텐츠',pillar:'WRC',date:'2026-01-21',paid:false,collab:false,engView:456,week:4},
+  {title:'🇲🇽 2026 Formula E : Round 2 Tire Focus Highlight',side:'경기 사전 콘텐츠',pillar:'Formula E',date:'2026-01-23',paid:false,collab:false,engView:20,week:4},
+  {title:'🇲🇨 2026 WRC : Round 1 MONACO Result',side:'경기 결과 콘텐츠',pillar:'WRC',date:'2026-01-26',paid:false,collab:false,engView:98,week:5},
+  {title:'🇲🇨 2026 WRC : Round 1 MONACO Highlight',side:'하이라이트',pillar:'WRC',date:'2026-01-28',paid:false,collab:false,engView:35,week:5},
+  {title:'2026 Formula E S12 Hankook Moment Highlight ver',side:'프리뷰',pillar:'Formula E',date:'2026-01-29',paid:false,collab:false,engView:8,week:5},
+  {title:'🇺🇸 Formula E 2026 : Round 3 MIAMI Booth Event 안내',side:'경기사전 콘텐츠',pillar:'Formula E',date:'2026-01-29',paid:false,collab:false,engView:7,week:5},
+  {title:'🇺🇸 Formula E 2026 : Round 3 MIAMI Highlight #1',side:'프리뷰',pillar:'Formula E',date:'2026-01-30',paid:false,collab:false,engView:17,week:5},
+  {title:'"Upcoming D-1 🇺🇸 Formula E 2026 : Round 3 MIAMI"',side:'경기사전 콘텐츠',pillar:'Formula E',date:'2026-01-30',paid:false,collab:false,engView:4,week:5},
+  {title:'🇺🇸 Formula E 2026 : Round 3 MIAMI Highlight #2',side:'하이라이트',pillar:'Formula E',date:'2026-01-31',paid:false,collab:false,engView:17,week:5}
+];
+const igFebData=[
+  {title:'Formula E 2026 : Round 3 MIAMI  Result',side:'경기 결과 콘텐츠',pillar:'Formula E',date:'2026-02-02',paid:false,collab:false,engView:71,week:2},
+  {title:'Formula E 2026 : Round 3 MIAMI Booth Event 당첨자발표',side:'부스이벤트 결과',pillar:'Formula E',date:'2026-02-04',paid:false,collab:false,engView:168,week:2},
+  {title:'Formula E 2026 : Round 3 MIAMI Max preparing for the race',side:'하이라이트',pillar:'Formula E',date:'2026-02-05',paid:false,collab:false,engView:13385,week:2},
+  {title:'2026 WRC : Round 2 SWEDEN Tire Information',side:'경기사전 콘텐츠',pillar:'WRC',date:'2026-02-09',paid:false,collab:false,engView:7697,week:3},
+  {title:'officialwrc 공동작업자 #1',side:'공동작업자',pillar:'WRC',date:'2026-02-09',paid:false,collab:true,engView:17768,week:3},
+  {title:'2026 Formula E : Round 4 & 5 Jeddah, SAUDI ARABIA Booth Even',side:'부스 이벤트 홍보',pillar:'Formula E',date:'2026-02-10',paid:false,collab:false,engView:2411,week:3},
+  {title:'Upcoming D-1 2026 WRC : Round 2 SWEDEN',side:'경기 사전 콘텐츠',pillar:'WRC',date:'2026-02-11',paid:false,collab:false,engView:90,week:3},
+  {title:'officialwrc 공동작업자 #2',side:'공동작업자',pillar:'WRC',date:'2026-02-11',paid:false,collab:true,engView:4923,week:3},
+  {title:'Upcoming D-1 2026 WRC : Round 2 SWEDEN Video Ver.',side:'프리뷰',pillar:'WRC',date:'2026-02-12',paid:false,collab:false,engView:2975,week:3},
+  {title:'Upcoming D-1 2026 Formula E : Round 4 & 5 SAUDI ARABIA',side:'경기사전 콘텐츠',pillar:'Formula E',date:'2026-02-12',paid:false,collab:false,engView:38,week:3},
+  {title:'🇸🇦 2026 Formula E : Round 4 & 5 SAUDI ARABIA Highlight #1 수급',side:'프리뷰',pillar:'Formula E',date:'2026-02-12',paid:false,collab:false,engView:3257,week:3},
+  {title:'🇸🇦 2026 Formula E : Round 4 & 5 SAUDI ARABIA Highlight #2 수급',side:'하이라이트',pillar:'Formula E',date:'2026-02-13',paid:false,collab:false,engView:3594,week:3},
+  {title:'🇸🇦 2026 Formula E : Round 4 & 5 SAUDI ARABIA Highlight #3 수급',side:'하이라이트',pillar:'Formula E',date:'2026-02-14',paid:false,collab:false,engView:22994,week:3},
+  {title:'fiaformulae 공동작업자 #1',side:'공동작업자',pillar:'Formula E',date:'2026-02-15',paid:false,collab:true,engView:3399,week:3},
+  {title:'🇸🇪 2026 WRC : Round 2 SWEDEN Result',side:'경기 결과 콘텐츠',pillar:'Formula E',date:'2026-02-15',paid:false,collab:false,engView:62,week:3},
+  {title:'🇸🇦 2026 Formula E : Round 4 & 5 SAUDI ARABIA Result',side:'경기 결과 콘텐츠',pillar:'WRC',date:'2026-02-15',paid:false,collab:false,engView:117,week:3},
+  {title:'2026 Formula E : Round 4 & 5 Jeddah, SAUDI ARABIA Booth Even',side:'부스이벤트 결과',pillar:'Formula E',date:'2026-02-19',paid:false,collab:false,engView:86,week:4},
+  {title:'🇸🇪 2026 WRC : Round 2 SWEDEN Highlight',side:'하이라이트',pillar:'WRC',date:'2026-02-20',paid:false,collab:false,engView:11717,week:4},
+  {title:'Fan Engagement Content',side:'Engagement',pillar:'WRC',date:'2026-02-26',paid:false,collab:false,engView:126,week:5}
+];
+const xFebData=[
+  {title:'Formula E 2026 : Round 3 MIAMI  Result',side:'경기 결과 콘텐츠',pillar:'Formula E',date:'2026-02-02',paid:false,collab:false,engView:25,week:2},
+  {title:'Formula E 2026 : Round 3 MIAMI Booth Event 당첨자발표',side:'부스이벤트 결과',pillar:'Formula E',date:'2026-02-04',paid:false,collab:false,engView:24,week:2},
+  {title:'Formula E 2026 : Round 3 MIAMI Max preparing for the race',side:'하이라이트',pillar:'Formula E',date:'2026-02-05',paid:false,collab:false,engView:14,week:2},
+  {title:'2026 WRC : Round 2 SWEDEN Tire Information',side:'경기사전 콘텐츠',pillar:'WRC',date:'2026-02-09',paid:false,collab:false,engView:398,week:3},
+  {title:'2026 Formula E : Round 4 & 5 Jeddah, SAUDI ARABIA Booth Even',side:'부스 이벤트 홍보',pillar:'Formula E',date:'2026-02-10',paid:false,collab:false,engView:12,week:3},
+  {title:'Upcoming D-1 2026 WRC : Round 2 SWEDEN',side:'경기 사전 콘텐츠',pillar:'WRC',date:'2026-02-11',paid:false,collab:false,engView:214,week:3},
+  {title:'Upcoming D-1 2026 Formula E : Round 4 & 5 SAUDI ARABIA',side:'프리뷰',pillar:'WRC',date:'2026-02-12',paid:false,collab:false,engView:16,week:3},
+  {title:'Upcoming D-1 2026 WRC : Round 2 SWEDEN Video Ver.',side:'경기사전 콘텐츠',pillar:'Formula E',date:'2026-02-12',paid:false,collab:false,engView:37,week:3},
+  {title:'🇸🇦 2026 Formula E : Round 4 & 5 SAUDI ARABIA Highlight #1 수급',side:'프리뷰',pillar:'Formula E',date:'2026-02-13',paid:false,collab:false,engView:14,week:3},
+  {title:'🇸🇦 2026 Formula E : Round 4 & 5 SAUDI ARABIA Highlight #2 수급',side:'하이라이트',pillar:'Formula E',date:'2026-02-14',paid:false,collab:false,engView:26,week:3},
+  {title:'🇸🇦 2026 Formula E : Round 4 & 5 SAUDI ARABIA Highlight #3 수급',side:'하이라이트',pillar:'Formula E',date:'2026-02-15',paid:false,collab:false,engView:9,week:3},
+  {title:'🇸🇦 2026 Formula E : Round 4 & 5 SAUDI ARABIA Result',side:'경기 결과 콘텐츠',pillar:'Formula E',date:'2026-02-16',paid:false,collab:false,engView:20,week:4},
+  {title:'🇸🇪 2026 WRC : Round 2 SWEDEN Result',side:'경기 결과 콘텐츠',pillar:'WRC',date:'2026-02-16',paid:false,collab:false,engView:235,week:4},
+  {title:'2026 Formula E : Round 4 & 5 Jeddah, SAUDI ARABIA Booth Even',side:'부스이벤트 결과',pillar:'Formula E',date:'2026-02-19',paid:false,collab:false,engView:12,week:4},
+  {title:'🇸🇪 2026 WRC : Round 2 SWEDEN Highlight',side:'하이라이트',pillar:'WRC',date:'2026-02-20',paid:false,collab:false,engView:50,week:4},
+  {title:'Fan Engagement Content',side:'Engagement',pillar:'WRC',date:'2026-02-26',paid:false,collab:false,engView:87,week:5}
+];
+const t5State={jan:{period:'month',week:'all',collab:false},feb:{period:'month',week:'all',collab:false}};
+
+function setP(period,btn,m){
+  t5State[m].period=period;
+  btn.closest('.top5-controls').querySelectorAll('.ctrl-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
+  const sel=document.getElementById('wk-'+m);if(sel)sel.style.display=period==='week'?'block':'none';
+  renderTop5(m);
+}
+function toggleCollab(m){
+  t5State[m].collab=!t5State[m].collab;
+  const btn=document.getElementById('cb-'+m);
+  btn.classList.toggle('active',t5State[m].collab);
+  btn.textContent=t5State[m].collab?'공동작업자 포함':'공동작업자 제외';
+  renderTop5(m);
+}
+function renderTop5(m){
+  const s=t5State[m];
+  let ig=m==='jan'?[...igJanData]:[...igFebData];
+  let x=m==='jan'?[...xJanData]:[...xFebData];
+  if(s.period==='week'){
+    const sel=document.getElementById('wk-'+m);
+    const w=sel?parseInt(sel.value):NaN;
+    if(!isNaN(w)){ig=ig.filter(r=>r.week===w);x=x.filter(r=>r.week===w);}
+  }
+  if(!s.collab){ig=ig.filter(r=>!r.collab);x=x.filter(r=>!r.collab);}
+  ig.sort((a,b)=>(b.engView||0)-(a.engView||0));
+  x.sort((a,b)=>(b.engView||0)-(a.engView||0));
+  renderList(ig.slice(0,5),'t5-ig-'+m);
+  renderList(x.slice(0,5),'t5-x-'+m);
+}
+function fmtN(n){if(!n)return'—';n=parseFloat(n);if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1000)return(n/1000).toFixed(1)+'K';return String(Math.round(n));}
+function renderList(data,elId){
+  const el=document.getElementById(elId);if(!el)return;
+  if(!data.length){el.innerHTML='<div class="no-data">데이터 없음</div>';return;}
+  el.innerHTML=data.map((d,i)=>{
+    const cb=d.collab?'<span class="badge b-collab">공동작업자</span>':'';
+    const pb=d.paid?'<span class="badge b-paid">Paid</span>':'<span class="badge b-organic">Organic</span>';
+    const rb=d.pillar==='Formula E'?'<span class="badge b-fe">FE</span>':'<span class="badge b-wrc">WRC</span>';
+    const cs=d.collab?'background:linear-gradient(90deg,#8b5cf610,transparent);':'';
+    return `<div class="top5-item" style="${cs}">
+      <span class="top5-rank${i===0?' r1':''}">${i+1}</span>
+      <div class="top5-info"><div class="top5-title">${d.title}</div>
+        <div class="top5-meta">${rb}${cb}${pb}<span>${d.side}</span></div></div>
+      <span class="top5-val">${fmtN(d.engView)}</span></div>`;
+  }).join('');
+}
+
+// Charts
+const TIP={backgroundColor:'#fff',titleColor:'#111',bodyColor:'#555',borderColor:'#e5e5e5',borderWidth:1,padding:8};
+const GRID='rgba(0,0,0,0.06)'; const TICK='#aaa';
+function donut(id,labels,data,colors){
+  const el=document.getElementById(id);if(!el)return;
+  new Chart(el,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false},tooltip:TIP}}});
+}
+function hbar(id,labels,data,color){
+  const el=document.getElementById(id);if(!el)return;
+  new Chart(el,{type:'bar',indexAxis:'y',data:{labels,datasets:[{data,backgroundColor:color,borderRadius:3,barPercentage:.6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:TIP},scales:{x:{grid:{color:GRID},ticks:{color:TICK,font:{size:9}}},y:{grid:{display:false},ticks:{color:TICK,font:{size:9}}}}}});
+}
+function bar2(id,labels,d1,d2,c1,c2,l1,l2){
+  const el=document.getElementById(id);if(!el)return;
+  new Chart(el,{type:'bar',data:{labels,datasets:[{label:l1,data:d1,backgroundColor:c1,borderRadius:4,barPercentage:.4},{label:l2,data:d2,backgroundColor:c2,borderRadius:4,barPercentage:.4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:TIP},scales:{x:{grid:{display:false},ticks:{color:TICK,font:{size:9}}},y:{grid:{color:GRID},ticks:{color:TICK,font:{size:9},callback:v=>v>=1e6?(v/1e6).toFixed(1)+'M':v>=1000?(v/1000).toFixed(0)+'K':v}}}}});
+}
+
+donut('c-ig1-pillar',['Formula E','WRC'],[13,6],['#E1306C','#888']);
+donut('c-x1-pillar',['Formula E','WRC'],[13,6],['#111','#888']);
+hbar('c-ig1-sp',["부스 이벤트 홍보", "프리뷰", "경기 사전 콘텐츠", "하이라이트", "경기 결과 콘텐츠", "부스이벤트 결과", "경기사전 콘텐츠"],[1, 3, 6, 4, 2, 1, 2],'#E1306C');
+hbar('c-x1-sp',["부스 이벤트 홍보", "프리뷰", "경기 사전 콘텐츠", "하이라이트", "경기 결과 콘텐츠", "부스이벤트 결과", "경기사전 콘텐츠"],[1, 3, 6, 4, 2, 1, 2],'#111');
+
+donut('c-ig2-pillar',['Formula E','WRC'],[11,8],['#E1306C','#888']);
+donut('c-x2-pillar',['Formula E','WRC'],[10,6],['#111','#888']);
+hbar('c-ig2-sp',["경기 결과 콘텐츠", "부스이벤트 결과", "하이라이트", "경기사전 콘텐츠", "공동작업자", "부스 이벤트 홍보", "경기 사전 콘텐츠", "프리뷰", "Engagement"],[3, 2, 4, 2, 3, 1, 1, 2, 1],'#E1306C');
+hbar('c-x2-sp',["경기 결과 콘텐츠", "부스이벤트 결과", "하이라이트", "경기사전 콘텐츠", "부스 이벤트 홍보", "경기 사전 콘텐츠", "프리뷰", "Engagement"],[3, 2, 4, 2, 1, 1, 2, 1],'#111');
+
+bar2('c-ig-yoy',['1월 Interaction','2월 Interaction'],
+  [150536,27814],[485612,492913],'#E1306C','#E1306C55','2026','2025');
+bar2('c-x-yoy',['1월 Impression','2월 Impression','1월 Interaction','2월 Interaction'],
+  [9599,9678,647,1193],[33639,11631,907,435],'#111','#ccc','2026','2025');
+
+loadFw();
+renderTop5('jan');
+renderTop5('feb');
+</script>
+</body>
+</html>
